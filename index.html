@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <title>Todo List App</title>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-md-6">
+            <h1 class="text-center">Todo list</h1>
+              <div id="app">
+                <input type="text" class="form-control" placeholder="Input task" v-model="newTask" @keyup.enter="addTask">
+                
+                <hr>
+                
+                <button @click="addTask" class="btn btn-primary">Add Task</button>
+                
+                <hr>
+                
+                  <ul class="list-group">
+                    <li class="list-group-item" v-for="item in items" :key="item.id">
+                      
+                      <span> {{ item.name }} </span>  
+                    
+                      <input type="text" class="form-control form-control-sm" v-model="editTask" v-if="editId === item.id">
+    
+                      <span v-if="!editId">
+                        <button class="btn btn-info float-right" @click="remove(item)">Delete</button>
+                        <button class="btn btn-danger float-right" @click="edit(item)">Edit</button>
+                      </span>
+                      <span v-if="editId === item.id">
+                        <button class="btn btn-success float-right" @click="update(item)">Update</button>
+                        <button class="btn btn-warning float-right" @click="cancel">Cancel</button>
+                      </span>
+                  </li>
+                </ul>
+            </div>   
+          </div>
+        </div>
+        </div>
+    <script src="https://unpkg.com/axios@0.17.1/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue@2.6.11/dist/vue.js"></script>
+    <script>
+
+      axios.defaults.baseURL = 'http://localhost:3000'
+      axios.defaults.headers.post ['Content-Type'] = 'application/x-www-form-urlencoded'
+
+      new Vue({
+        el: '#app',
+        data(){
+          return {
+            newTask:"",
+            editTask:"",
+            editId:null,
+
+            items: []
+          }
+        },
+
+        mounted(){
+            this.getList()
+        },
+
+        methods: {
+
+            async getList() {
+
+                const response = await axios.get('')
+
+                this.items = response.data
+            },
+            
+           async  addTask() {
+                
+                const payload = {
+                    name: this.newTask
+                }
+
+                const response = await axios.post('', payload)
+
+                this.items.push({
+                })
+                this.newTask = '' 
+
+                this.getList ()
+            },
+            
+            async remove(item){
+              const response = await axios.delete(`/${item.id}`)
+
+                const index = this.items.indexOf(item)
+                this.items.splice(index, 1)
+            },
+
+            edit(item){
+                this.editId = item.id
+                this.editTask = item.name
+            },
+
+            async update(item){
+                const payload = {
+                    id: item.id,
+                    name: this.editTask
+                }
+                const response = await axios.put(`/${item.id}`, payload)
+                this.getList()
+                this.cancel()
+            },
+
+            cancel() {
+                this.editId = ''
+                this.editTask = ''
+            }
+        }
+      })
+    </script>
+</body>
+</html>
